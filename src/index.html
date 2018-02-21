@@ -20,18 +20,19 @@
 			<div id="timer" style="font-size:700%; text-align:center; color:gold;">2:15</div>
 			<div>
 				<svg id="gyro" width="100%" height="50%">
-					<circle cx="50%" cy="50%" r="125px" fill="gold"></circle>
+					<circle cx="50%" cy="43.5%" r="128px" fill="gold"></circle>
 					<g id="rotation-arm">
 						<rect x="49%" y="7%" width="10px" height="115px" fill="green"></rect>
 						<polygon points="203,35 243,35 223,10" fill="green"></polygon>
 					</g>
 					<g id="velocity-arm" >
-						<rect id="velocity-arm-rect" x="49%" y="26.1%" width="10px" height="65px"></rect>
+						<rect id="velocity-arm-rect" class="velocity-arm-rect-on"  x="49%" y="23.1%" width="10px" height="65px"></rect>
 						<polygon id="velocity-arm-tri" points="203,90 243,90 223,65"></polygon>
 					</g>
 				</svg>
 			</div>
 			<div style="font-size:500%; text-align:center; color:gold;">Team 623</div>
+			<div id="robot-status" style="font-size:300%; text-align:center; color:gold;">Disabled</div>
 		</div>
 		<div class="column-other" align="center">
 			<canvas id="arm" width="225px" height="500px"></canvas>

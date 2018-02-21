@@ -75,10 +75,18 @@
 	transform-origin: bottom;
 }
 
-#velocity-arm {
+.velocity-arm-on {
 	-webkit-transform-origin: bottom;
 	-ms-transform-origin: bottom;
 	transform-origin: bottom;
+	opacity: 1;
+}
+
+.velocity-arm-off {
+	-webkit-transform-origin: bottom;
+	-ms-transform-origin: bottom;
+	transform-origin: bottom;
+	opacity: 0;
 }
 
 #velocity-arm-rect {

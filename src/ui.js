@@ -24,6 +24,11 @@ let addresses = {
 			instructions: '/cob/autonomous/instructions',
 			enableOpposite: '/cob/autonomous/enable-crossing',
 		},
+		game: {
+			autonomous: '/cob/gamedata/is-autonomous',
+			teleop: '/cob/gamedata/is-teleop',
+			enabled: '/cob/gamedata/is-enabled'
+		},
 		fms: {
 			time: '/cob/fms/time',
 			field: '/cob/fms/field',
@@ -39,6 +44,12 @@ let ui = {
     timer: document.getElementById('timer'),
     example: document.getElementById('example'),
     field: document.getElementById('field'),
+    game: {
+    	status: document.getElementById('robot-status'),
+    	enabled: false,
+    	teleop: false,
+    	autonomous: false
+    },
     arm: {
         canvas: document.getElementById('arm'),
         height: 0,
@@ -181,6 +192,9 @@ NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
 NetworkTables.putValue('' + addresses.fms.alliance, true); //red
 NetworkTables.putValue('' + addresses.arm.height, 0); //initial height down
 NetworkTables.putValue('' + addresses.arm.rotation, 180 - 44); //begin folded
+NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
+NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
+NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -343,16 +357,21 @@ function drawArm() {
 	//draw the top arm
 	armContext.fillRect(0, 0, 12, 202);
 	
+	//lifty thing (translate)
+	armContext.restore();
+	armContext.save();
+	armContext.translate(armHorizontalDisplacement + 12, 50 + 202 + 198);
+	armContext.translate(0, -(ui.arm.height / 100 * 380));
+	//lifty thing (draw)
+	armContext.fillRect(2, -8, 40, 8);
+	armContext.fillRect(0, -20, 10, 15);
+	
 	//pivot
 	armContext.restore();
 	armContext.fillStyle = "black";
 	armContext.arc(armHorizontalDisplacement + 6, 50 + 202, 8, 0, 2*Math.PI);
 	armContext.fill();
 	
-	//lifty thing (translate)
-	armContext.translate(armHorizontalDisplacement + 12, 50 + 202 + 198);
-	armContext.translate(0, -(ui.arm.height / 100 * 400));
-	//lifty thing (draw)		
 }
 drawArm();
 
@@ -384,6 +403,7 @@ let updateVelocityMagnitude = (key, value) => {
 	//we set our initial scale (currentScale) relative to the max size (115px)
 	//we can now multiply that initial factor by value to get the real scale.
 	//scale the armrect
+	ui.velocity.arm.setAttribute("class", (value >= 0.05)? "velocity-arm-on" : "velocity-arm-off");
 	ui.velocity.armRect.style.transform = "scale(1, " + (value * scaleConst) + ")";
 	ui.velocity.armTri.style.transform = "translate(0px, " + (48 - 103 * value) + "px)";
 	//NetworkTables.putValue("/debug/scaleConst", scaleConst);
@@ -396,7 +416,7 @@ NetworkTables.addKeyListener( '' + addresses.fms.time, (key, value) => {
     let time = Math.round(value);
     ui.timer.innerHTML = time < 0 ? '0:00' : Math.floor(time / 60) + ':' + (time % 60 < 10 ? '0' : '') + time % 60;
 });
-NetworkTables.putValue('' + addresses.time, 124);
+NetworkTables.putValue('' + addresses.fms.time, 124);
 
 //arm rotation
 NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
@@ -406,9 +426,29 @@ NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
 
 //arm height
 NetworkTables.addKeyListener('' + addresses.arm.height, (key, value) => {
-	ui.arm.height = height;
+	ui.arm.height = value;
 	drawArm();
 });
+
+//Robot Status Handlers
+NetworkTables.addKeyListener('' + addresses.game.enabled, (key, value) => {
+	ui.game.enabled = value;
+	updateRobotStatus();
+});
+
+NetworkTables.addKeyListener('' + addresses.game.autonomous, (key, value) => {
+	ui.game.autonomous = value;
+	updateRobotStatus();
+});
+
+NetworkTables.addKeyListener('' + addresses.game.teleop, (key, value) => {
+	ui.game.teleop = value;
+	updateRobotStatus();
+});
+
+function updateRobotStatus() {
+	ui.game.status.innerHTML = (ui.game.enabled)? ((ui.game.autonomous)? "Autonomous" : ((ui.game.teleop)? "TeleOp" : "Enabled")) : "Disabled";
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ AUTONOMOUS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 updateAutoOptions();
@@ -606,15 +646,6 @@ function updateAutoOptions() {
 	} else {
 		//hide everything
 	}
-
-	//update the autonomous field
-	//uses the flowchart as seen in google drive
-	
-	//variable declarations
-	
-	
-	
-	//first redraw the field
 	
     //now use the flowchart
 	if (position == 'center') {
