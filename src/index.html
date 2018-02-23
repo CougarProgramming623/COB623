@@ -38,7 +38,7 @@
 			<div id="robot-status" style="font-size:300%; text-align:center; color:gold;">Disabled</div>
 		</div>
 		<div class="column-other" align="center">
-			<canvas id="arm" width="225px" height="500px"></canvas>
+			<canvas id="arm" width="210px" height="500px"></canvas>
 		</div>
 		<!-- COLUMN 3: Autonomous Selector -->
 		<div class="column" align="center">
@@ -73,6 +73,21 @@
 				<div style="display: block">
 					<button type="button" id="button-auto-checkbox-enable-opposite" class="button-on">Enable Opposite</button>
 					<button type="button" id="button-auto-checkbox-emergency-no-auto" class="button-off">NO AUTO</button>
+				</div>
+			</div>
+			<!-- PID Tuning -->
+			<div class="pid-tuning-box">
+				<div style="display: block">
+					<label for="pid-input-p" style="font-size: 150%; color: gold;">P = </label>
+					<input type="text" style="font-size: 150%" size = "5" id="pid-input-p">
+				</div>
+				<div style="display: block">
+					<label for="pid-input-i" style="font-size: 150%; color: gold;">I = </label>
+					<input type="text" style="font-size: 150%" size = "5" id="pid-input-i">
+				</div>
+				<div style="display: block">
+					<label for="pid-input-d" style="font-size: 150%; color: gold;">D = </label>
+					<input type="text" style="font-size: 150%" size = "5" id="pid-input-d">
 				</div>
 			</div>
 		</div>

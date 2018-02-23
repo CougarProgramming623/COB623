@@ -34,6 +34,11 @@ let addresses = {
 		field : '/cob/fms/field', //pass the field game data ('RRR', 'LLL', 'RLR', 'LRL')
 		alliance : '/cob/fms/alliance' //pass if the alliance is red (true, false)
 	},
+	pid : {
+		p : '/cob/pid/p', //the p coefficient for pid tuning
+		i : '/cob/pid/i', //the i coefficient for pid tuning
+		d : '/cob/pid/d', //the d coefficient for pid tuning
+	},
 	debug : {
 		error : '/cob/debug/error' //used for debugging the COB
 	}
@@ -100,6 +105,11 @@ let ui = {
 		enableOpposite : true, //the enable crossing value
 		emergencyStopButton : document.getElementById('button-auto-checkbox-emergency-no-auto'), //the emergency stop button
 		emergencyStop : false //the emergency stop button value
+	},
+	pid : {
+		p : document.getElementById('pid-input-p'),
+		i : document.getElementById('pid-input-i'),
+		d : document.getElementById('pid-input-d')
 	}
 };
 
@@ -186,6 +196,9 @@ NetworkTables.putValue('' + addresses.arm.rotation, 180 - 44); //begin folded
 NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
 NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
 NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
+NetworkTables.putValue('' + addresses.pid.p, 0.0) //no p
+NetworkTables.putValue('' + addresses.pid.i, 0.0) //no i
+NetworkTables.putValue('' + addresses.pid.d, 0.0) //no d
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
@@ -753,6 +766,22 @@ const SIDES = "RL";
 function isOurs(side, number) {
 	let data = NetworkTables.getValue('' + addresses.fms.field);
 	return (('' + data).charAt(number) == "LR".charAt(side));
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//PID Tuning
+
+ui.pid.p.onchange = function() {
+	NetworkTables.putValue('' + addresses.pid.p, parseFloat(ui.pid.p.value));
+}
+
+ui.pid.i.onchange = function() {
+	NetworkTables.putValue('' + addresses.pid.i, parseFloat(ui.pid.i.value));
+}
+
+ui.pid.d.onchange = function() {
+	NetworkTables.putValue('' + addresses.pid.d, parseFloat(ui.pid.d.value));
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
