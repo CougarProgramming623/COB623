@@ -12,7 +12,7 @@ If these don't work, check your Driver Station for the IP address of the dashboa
 ## Sample Images
 
 #### TeleOp:
-![TeleOp Screeshot](images/COB1.png)
+![TeleOp Screenshot](COB623/images/COB1.PNG)
 
 #### Autonomous:
-![Autonomous Screeshot](images/COB2.png)
+![Autonomous Screenshot](COB623/images/COB2.PNG)
