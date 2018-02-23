@@ -5,11 +5,39 @@
 	padding: 0;
 }
 
+blink, .blink {
+  -webkit-animation: blink 0.3s step-end infinite;
+  -moz-animation: blink 0.3s step-end infinite;
+  -o-animation: blink 0.3s step-end infinite;
+  animation: blink 0.3s step-end infinite;
+  color: rgba(150, 150, 255, 1);
+}
+
+.no-blink {
+	color: gold;
+}
+
+@-webkit-keyframes blink {
+  67% { opacity: 0 }
+}
+
+@-moz-keyframes blink {
+  67% { opacity: 0 }
+}
+
+@-o-keyframes blink {
+  67% { opacity: 0 }
+}
+
+@keyframes blink {
+  67% { opacity: 0 }
+}
+
 .button-on {
 	margin: 0;
 	text-align: center;
 	font-size: 200%;
-	background-color: green;
+	background: linear-gradient(90deg, rgba(0, 255, 0, 1), rgba(0, 200, 0, 1));
     border: 1px solid black;
     color: white;
     padding: 0;
@@ -24,7 +52,7 @@
 	margin: 0;
 	text-align: center;
 	font-size: 200%;
-	background-color: red;
+	background: linear-gradient(90deg, rgba(255, 0, 0, 1), rgba(200, 0, 0, 1));
     border: 1px solid black;
     color: black;
     padding: 0;
@@ -198,7 +226,7 @@ body.login-close #login {
     filter: opacity(0.6)
 }
 #login > button{
-    width:6em
+    width:6em;
 }
 #connect{
     text-align: center;

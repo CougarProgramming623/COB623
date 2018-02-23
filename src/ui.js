@@ -1,7 +1,7 @@
 // Import ipc
 ipc = require('electron').ipcRenderer;
 
-//define addresses
+//We define all addresses here to easily debug and change them
 let addresses = {
 	rotation : '/cob/rotation', //pass the rotation of the robot here (0 - 360)
 	position : {
@@ -39,7 +39,7 @@ let addresses = {
 	}
 };
 
-// Define UI elements
+// Define UI elements from index.html
 let ui = {
 	timer : document.getElementById('timer'), //the timer at the top middle
 	example : document.getElementById('example'), //the text at the bottom (UNUSED)
@@ -52,7 +52,7 @@ let ui = {
 	},
 	arm : {
 		canvas : document.getElementById('arm'), //the arm canvas
-		height : 0, //the height of the sled
+		height : 100, //the height of the sled
 		rotation : 180 - 44 //the rotation of the snout
 	},
 	rps : {
@@ -167,22 +167,21 @@ function onRobotConnection(connected) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
 //We set the default values for the NetworkTable addresses to avoid robot crashes.
 
-NetworkTables.putValue('' + addresses.rotation, 0);
-NetworkTables.putValue('' + addresses.position.x, 0);
-NetworkTables.putValue('' + addresses.position.y, 0);
-NetworkTables.putValue('' + addresses.velocity.direction, 0);
-NetworkTables.putValue('' + addresses.velocity.magnitude, 0);
-NetworkTables.putValue('' + addresses.arm.height, 0);
-NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false);
-NetworkTables.putValue('' + addresses.arm.climbStatus, 0);
-NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false);
+NetworkTables.putValue('' + addresses.rotation, 0); //forwards
+NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
+NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
+NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
+NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
+NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
+NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
+NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
 NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
 NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
 NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
 NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
 NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
 NetworkTables.putValue('' + addresses.fms.alliance, true); //red
-NetworkTables.putValue('' + addresses.arm.height, 0); //initial height down
+NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
 NetworkTables.putValue('' + addresses.arm.rotation, 180 - 44); //begin folded
 NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
 NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
@@ -323,9 +322,9 @@ function drawArm() {
 	armContext.fillRect(0, 0, 12, 202);
 
 	//lifty thing (translate)
-	armContext.restore();
-	armContext.save();
-	armContext.translate(armHorizontalDisplacement + 12, 50 + 202 + 198);
+	//armContext.restore();
+	//armContext.save();
+	armContext.translate(12, 202 + 198);
 	armContext.translate(0, -(ui.arm.height / 100 * 380));
 	//lifty thing (draw)
 	armContext.fillRect(2, -8, 40, 8);
@@ -380,6 +379,7 @@ NetworkTables.putValue('' + addresses.velocity.magnitude, 0.5);
 NetworkTables.addKeyListener('' + addresses.fms.time, (key, value) => {
 	let time = Math.round(value);
 	ui.timer.innerHTML = time < 0 ? '0:00' : Math.floor(time / 60) + ':' + (time % 60 < 10 ? '0' : '') + time % 60;
+	ui.timer.setAttribute("class", (ui.game.teleop && value <= 30 && value > 27)? "blink" : "no-blink");
 });
 NetworkTables.putValue('' + addresses.fms.time, 124);
 
@@ -650,6 +650,15 @@ let autoImageScaleFar = new Image();
 let autoImageSwitchOptimize = new Image();
 let autoImageScaleOptimize = new Image();
 let autoImageBaseline = new Image();
+
+let autoImageSwitchNearReversed = new Image();
+let autoImageSwitchFarReversed = new Image();
+let autoImageScaleNearReversed = new Image();
+let autoImageScaleFarReversed = new Image();
+let autoImageSwitchOptimizeReversed = new Image();
+let autoImageScaleOptimizeReversed = new Image();
+let autoImageBaselineReversed = new Image();
+
 autoImageCenter.src = "autonomous/Center.png";
 autoImageSwitchNear.src = "autonomous/SwitchNear.png";
 autoImageSwitchFar.src = "autonomous/SwitchFar.png";
@@ -658,6 +667,14 @@ autoImageScaleFar.src = "autonomous/ScaleFar.png";
 autoImageSwitchOptimize.src = "autonomous/OptimizeSwitch.png";
 autoImageScaleOptimize.src = "autonomous/OptimizeScale.png";
 autoImageBaseline.src = "autonomous/Baseline.png";
+
+autoImageSwitchNearReversed.src = "autonomous/SwitchNearReversed.png";
+autoImageSwitchFarReversed.src = "autonomous/SwitchFarReversed.png";
+autoImageScaleNearReversed.src = "autonomous/ScaleNearReversed.png";
+autoImageScaleFarReversed.src = "autonomous/ScaleFarReversed.png";
+autoImageSwitchOptimizeReversed.src = "autonomous/OptimizeSwitchReversed.png";
+autoImageScaleOptimizeReversed.src = "autonomous/OptimizeScaleReversed.png";
+autoImageBaselineReversed.src = "autonomous/BaselineReversed.png";
 
 //draws the autonomous routes based on selected options if teleop is not running
 function drawAutonomousRoutes() {
@@ -675,10 +692,8 @@ function drawAutonomousRoutes() {
 		//draw the routes needed
 		if (side == 1) { //center
 			context.drawImage(autoImageCenter, horizontalDisplacement, 0, 248, 500);
-		} else if (side == 0 || side == 2) { //left or right
+		} else if (side == 0) { //left
 
-			if (side == 2)
-				context.scale(-1, 1);
 			if (doSwitch) {
 				context.drawImage(autoImageSwitchNear, horizontalDisplacement, 0, 248, 500);
 				if (optimize) {
@@ -695,6 +710,26 @@ function drawAutonomousRoutes() {
 			}
 			if (doBaseline || !optimize) {
 				context.drawImage(autoImageBaseline, horizontalDisplacement, 0, 248, 500);
+			}
+			
+		} else if (side == 2) {//right
+
+			if (doSwitch) {
+				context.drawImage(autoImageSwitchNearReversed, horizontalDisplacement, 0, 248, 500);
+				if (optimize) {
+					context.drawImage(autoImageSwitchOptimizeReversed, horizontalDisplacement, 0, 248, 500);
+					context.drawImage(autoImageSwitchFarReversed, horizontalDisplacement, 0, 248, 500);
+				}
+			}
+			if (doScale) {
+				context.drawImage(autoImageScaleNearReversed, horizontalDisplacement, 0, 248, 500);
+				if (optimize) {
+					context.drawImage(autoImageScaleOptimizeReversed, horizontalDisplacement, 0, 248, 500);
+					context.drawImage(autoImageScaleFarReversed, horizontalDisplacement, 0, 248, 500);
+				}
+			}
+			if (doBaseline || !optimize) {
+				context.drawImage(autoImageBaselineReversed, horizontalDisplacement, 0, 248, 500);
 			}
 		}
 	}
