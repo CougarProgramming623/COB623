@@ -3,6 +3,7 @@
 	text-fill: gold;
 	margin: 0;
 	padding: 0;
+	cursor: url(paw.png), auto;
 }
 
 blink, .blink {
@@ -157,7 +158,7 @@ blink, .blink {
 	border-image-slice: 1;
 }
 
-.pid-tuning-box {
+.pid-enabled-box {
 	width: 75%;
 	height: 20%;
 	margin: auto;
