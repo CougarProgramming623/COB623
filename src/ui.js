@@ -13,7 +13,7 @@ let addresses = {
 		magnitude : '/cob/velocity/magnitude' //pass the speed of the robot here (0 - infinity)
 	},
 	arm : {
-		height : '/cob/arm/height', //pass the height of the arm here (0 - 100)
+		height : '/cob/arm/height', //pass the height of the arm here (0 - 1)
 		rotation : '/cob/arm/rotation', //pass the rotation of the arm here (0 - 136)
 		cubeGrabbed : '/cob/arm/cube-grabbed', //pass if the cube is grabbed here (UNUSED)
 		climbStatus : '/cob/arm/climb-status' //pass the climb status here (UNUSED)
@@ -34,11 +34,6 @@ let addresses = {
 		field : '/cob/fms/field', //pass the field game data ('RRR', 'LLL', 'RLR', 'LRL')
 		alliance : '/cob/fms/alliance' //pass if the alliance is red (true, false)
 	},
-	pid : {
-		p : '/cob/pid/p', //the p coefficient for pid tuning
-		i : '/cob/pid/i', //the i coefficient for pid tuning
-		d : '/cob/pid/d', //the d coefficient for pid tuning
-	},
 	debug : {
 		error : '/cob/debug/error' //used for debugging the COB
 	}
@@ -57,7 +52,7 @@ let ui = {
 	},
 	arm : {
 		canvas : document.getElementById('arm'), //the arm canvas
-		height : 100, //the height of the sled
+		height : 0.6, //the height of the sled
 		rotation : 180 - 44 //the rotation of the snout
 	},
 	rps : {
@@ -105,11 +100,6 @@ let ui = {
 		enableOpposite : true, //the enable crossing value
 		emergencyStopButton : document.getElementById('button-auto-checkbox-emergency-no-auto'), //the emergency stop button
 		emergencyStop : false //the emergency stop button value
-	},
-	pid : {
-		p : document.getElementById('pid-input-p'),
-		i : document.getElementById('pid-input-i'),
-		d : document.getElementById('pid-input-d')
 	}
 };
 
@@ -192,13 +182,11 @@ NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
 NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
 NetworkTables.putValue('' + addresses.fms.alliance, true); //red
 NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
-NetworkTables.putValue('' + addresses.arm.rotation, 180 - 44); //begin folded
+NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
 NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
 NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
 NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
-NetworkTables.putValue('' + addresses.pid.p, 0.0) //no p
-NetworkTables.putValue('' + addresses.pid.i, 0.0) //no i
-NetworkTables.putValue('' + addresses.pid.d, 0.0) //no d
+NetworkTables.putValue('' + addresses.pid, true); //enabled
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
@@ -300,8 +288,8 @@ function drawField() {
 		//draw the predicted autonomous routes (this does nothing if we are in tele)
 		drawAutonomousRoutes();
 
-		//Draw the robot's position (we do this last so that everything is under it)
-		context.drawImage(rps, ui.rps.x - 15, ui.rps.y - 15, 30, 30);
+		//Draw the robot's position (we do this last so that everything is under it) UNUSED NOW
+		//context.drawImage(rps, ui.rps.x - 15, ui.rps.y - 15, 30, 30);
 	}
 }
 
@@ -328,7 +316,7 @@ function drawArm() {
 	//first translate the context to the top of the lower arm
 	armContext.translate(armHorizontalDisplacement + 6, 50 + 202);
 	//rotate to proper angle
-	armContext.rotate(ui.arm.rotation * Math.PI / 180);
+	//armContext.rotate(ui.arm.rotation * Math.PI / 180);
 	//translate the context to the top
 	armContext.translate(-6, -202);
 	//draw the top arm
@@ -338,7 +326,7 @@ function drawArm() {
 	//armContext.restore();
 	//armContext.save();
 	armContext.translate(12, 202 + 198);
-	armContext.translate(0, -(ui.arm.height / 100 * 380));
+	armContext.translate(0, -(ui.arm.height * 380));
 	//lifty thing (draw)
 	armContext.fillRect(2, -8, 40, 8);
 	armContext.fillRect(0, -20, 10, 15);
@@ -398,8 +386,8 @@ NetworkTables.putValue('' + addresses.fms.time, 124);
 
 //arm rotation
 NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
-	ui.arm.rotation = value;
-	drawArm();
+	//ui.arm.rotation = value;
+	//drawArm();
 });
 
 //arm height
@@ -770,19 +758,7 @@ function isOurs(side, number) {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-//PID Tuning
 
-ui.pid.p.onchange = function() {
-	NetworkTables.putValue('' + addresses.pid.p, parseFloat(ui.pid.p.value));
-}
-
-ui.pid.i.onchange = function() {
-	NetworkTables.putValue('' + addresses.pid.i, parseFloat(ui.pid.i.value));
-}
-
-ui.pid.d.onchange = function() {
-	NetworkTables.putValue('' + addresses.pid.d, parseFloat(ui.pid.d.value));
-}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
