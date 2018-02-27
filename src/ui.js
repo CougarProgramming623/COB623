@@ -162,31 +162,31 @@ function onRobotConnection(connected) {
 			connect.firstChild.data = 'Connecting';
 		};
 	}
+	
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
+	//We set the default values for the NetworkTable addresses to avoid robot crashes.
+
+	NetworkTables.putValue('' + addresses.rotation, 0); //forwards
+	NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
+	NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
+	NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
+	NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
+	NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
+	NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
+	NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
+	NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
+	NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
+	NetworkTables.putValue('' + addresses.fms.alliance, true); //red
+	NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
+	NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
+	NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
+	NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
+	NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
+	NetworkTables.putValue('' + addresses.pid, true); //enabled
 }
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
-//We set the default values for the NetworkTable addresses to avoid robot crashes.
-
-NetworkTables.putValue('' + addresses.rotation, 0); //forwards
-NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
-NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
-NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
-NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
-NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
-NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
-NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
-NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
-NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
-NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
-NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
-NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
-NetworkTables.putValue('' + addresses.fms.alliance, true); //red
-NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
-NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
-NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
-NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
-NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
-NetworkTables.putValue('' + addresses.pid, true); //enabled
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
