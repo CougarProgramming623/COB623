@@ -13,7 +13,7 @@ let addresses = {
 		magnitude : '/cob/velocity/magnitude' //pass the speed of the robot here (0 - infinity)
 	},
 	arm : {
-		height : '/cob/arm/height', //pass the height of the arm here (0 - 100)
+		height : '/cob/arm/height', //pass the height of the arm here (0 - 1)
 		rotation : '/cob/arm/rotation', //pass the rotation of the arm here (0 - 136)
 		cubeGrabbed : '/cob/arm/cube-grabbed', //pass if the cube is grabbed here (UNUSED)
 		climbStatus : '/cob/arm/climb-status' //pass the climb status here (UNUSED)
@@ -34,7 +34,6 @@ let addresses = {
 		field : '/cob/fms/field', //pass the field game data ('RRR', 'LLL', 'RLR', 'LRL')
 		alliance : '/cob/fms/alliance' //pass if the alliance is red (true, false)
 	},
-	pid : '/cob/pid',
 	debug : {
 		error : '/cob/debug/error' //used for debugging the COB
 	}
@@ -53,7 +52,7 @@ let ui = {
 	},
 	arm : {
 		canvas : document.getElementById('arm'), //the arm canvas
-		height : 100, //the height of the sled
+		height : 0.6, //the height of the sled
 		rotation : 180 - 44 //the rotation of the snout
 	},
 	rps : {
@@ -101,8 +100,7 @@ let ui = {
 		enableOpposite : true, //the enable crossing value
 		emergencyStopButton : document.getElementById('button-auto-checkbox-emergency-no-auto'), //the emergency stop button
 		emergencyStop : false //the emergency stop button value
-	},
-	pid : document.getElementById('pid-enabled-text')
+	}
 };
 
 // Define NetworkTable Address
@@ -164,31 +162,31 @@ function onRobotConnection(connected) {
 			connect.firstChild.data = 'Connecting';
 		};
 	}
+	
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
+	//We set the default values for the NetworkTable addresses to avoid robot crashes.
+
+	NetworkTables.putValue('' + addresses.rotation, 0); //forwards
+	NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
+	NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
+	NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
+	NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
+	NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
+	NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
+	NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
+	NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
+	NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
+	NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
+	NetworkTables.putValue('' + addresses.fms.alliance, true); //red
+	NetworkTables.putValue('' + addresses.arm.height, 0.6); //initial height just above pivot
+	NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
+	NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
+	NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
+	NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
+	NetworkTables.putValue('' + addresses.pid, true); //enabled
 }
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
-//We set the default values for the NetworkTable addresses to avoid robot crashes.
-
-NetworkTables.putValue('' + addresses.rotation, 0); //forwards
-NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
-NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
-NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
-NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
-NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
-NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
-NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
-NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
-NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
-NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
-NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
-NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
-NetworkTables.putValue('' + addresses.fms.alliance, true); //red
-NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
-NetworkTables.putValue('' + addresses.arm.rotation, 180 - 44); //begin folded
-NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
-NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
-NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
-NetworkTables.putValue('' + addresses.pid, true); //enabled
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
@@ -318,7 +316,7 @@ function drawArm() {
 	//first translate the context to the top of the lower arm
 	armContext.translate(armHorizontalDisplacement + 6, 50 + 202);
 	//rotate to proper angle
-	armContext.rotate(ui.arm.rotation * Math.PI / 180);
+	//armContext.rotate(ui.arm.rotation * Math.PI / 180);
 	//translate the context to the top
 	armContext.translate(-6, -202);
 	//draw the top arm
@@ -328,7 +326,7 @@ function drawArm() {
 	//armContext.restore();
 	//armContext.save();
 	armContext.translate(12, 202 + 198);
-	armContext.translate(0, -(ui.arm.height / 100 * 380));
+	armContext.translate(0, -(ui.arm.height * 380));
 	//lifty thing (draw)
 	armContext.fillRect(2, -8, 40, 8);
 	armContext.fillRect(0, -20, 10, 15);
@@ -388,8 +386,8 @@ NetworkTables.putValue('' + addresses.fms.time, 124);
 
 //arm rotation
 NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
-	ui.arm.rotation = value;
-	drawArm();
+	//ui.arm.rotation = value;
+	//drawArm();
 });
 
 //arm height
@@ -421,11 +419,6 @@ NetworkTables.addKeyListener('' + addresses.game.teleop, (key, value) => {
 function updateRobotStatus() {
 	ui.game.status.innerHTML = (ui.game.enabled) ? ((ui.game.autonomous) ? "Autonomous" : ((ui.game.teleop) ? "TeleOp" : "Enabled")) : "Disabled";
 }
-
-//PID enabled handler
-NetworkTables.addKeyListener('' + addresses.pid, (key, value) => {
-	ui.pid.innerHTML = (value)? "PID: Enabled" : "PID: Disabled";
-});
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ AUTONOMOUS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //update the autonomous options at start
