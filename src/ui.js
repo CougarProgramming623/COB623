@@ -392,8 +392,11 @@ NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
 
 //arm height
 NetworkTables.addKeyListener('' + addresses.arm.height, (key, value) => {
-	ui.arm.height = value;
-	drawArm();
+	//random jump protection
+	if (value - ui.arm.height < 0.05) {
+		ui.arm.height = value;
+		drawArm();
+	}
 });
 
 //Robot Status Handlers
