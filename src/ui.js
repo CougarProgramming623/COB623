@@ -34,6 +34,7 @@ let addresses = {
 		field : '/cob/fms/field', //pass the field game data ('RRR', 'LLL', 'RLR', 'LRL')
 		alliance : '/cob/fms/alliance' //pass if the alliance is red (true, false)
 	},
+	lidar: '/cob/lidar',
 	debug : {
 		error : '/cob/debug/error' //used for debugging the COB
 	}
@@ -100,7 +101,8 @@ let ui = {
 		enableOpposite : true, //the enable crossing value
 		emergencyStopButton : document.getElementById('button-auto-checkbox-emergency-no-auto'), //the emergency stop button
 		emergencyStop : false //the emergency stop button value
-	}
+	},
+	lidarText: document.getElementById('lidar-text')
 };
 
 // Define NetworkTable Address
@@ -185,8 +187,34 @@ function onRobotConnection(connected) {
 	NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
 	NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
 	NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
-	NetworkTables.putValue('' + addresses.pid, true); //enabled
+	
+	//reset the buttons
+	resetAutoOptions();
+	
 }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~ NETWORK TABLES INITIAL VALUES ~~~~~~~
+//We set the default values for the NetworkTable addresses to avoid robot crashes.
+
+NetworkTables.putValue('' + addresses.rotation, 0); //forwards
+NetworkTables.putValue('' + addresses.position.x, 0); //UNUSED
+NetworkTables.putValue('' + addresses.position.y, 0); //UNUSED
+NetworkTables.putValue('' + addresses.velocity.direction, 0); //forwards
+NetworkTables.putValue('' + addresses.velocity.magnitude, 0); //not moving
+NetworkTables.putValue('' + addresses.arm.cubeGrabbed, false) //UNUSED
+NetworkTables.putValue('' + addresses.arm.climbStatus, 0); //UNUSED
+NetworkTables.putValue('' + addresses.autonomous.emergencyStop, false); //no emergency stop
+NetworkTables.putValue('' + addresses.autonomous.side, 0); //left
+NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
+NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
+NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
+NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
+NetworkTables.putValue('' + addresses.fms.alliance, true); //red
+NetworkTables.putValue('' + addresses.arm.height, 0.6); //initial height just above pivot
+NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
+NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
+NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
+NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
@@ -284,7 +312,7 @@ function drawField() {
 	
 			}
 		}
-
+		
 		//draw the predicted autonomous routes (this does nothing if we are in tele)
 		drawAutonomousRoutes();
 
@@ -356,7 +384,6 @@ let updateVelocityRotation = (key, value) => {
 	ui.velocity.arm.style.transform = "rotate(" + value + "deg)";
 }
 NetworkTables.addKeyListener('' + addresses.velocity.direction, updateVelocityRotation);
-NetworkTables.putValue('' + addresses.velocity.direction, 100);
 
 //Velocity magnitude detection
 const scaleConst = 115 / 65;
@@ -374,7 +401,6 @@ let updateVelocityMagnitude = (key, value) => {
 //NetworkTables.putValue("/debug/scaleConst", scaleConst);
 }
 NetworkTables.addKeyListener('' + addresses.velocity.magnitude, updateVelocityMagnitude);
-NetworkTables.putValue('' + addresses.velocity.magnitude, 0.5);
 
 //timer
 NetworkTables.addKeyListener('' + addresses.fms.time, (key, value) => {
@@ -382,7 +408,6 @@ NetworkTables.addKeyListener('' + addresses.fms.time, (key, value) => {
 	ui.timer.innerHTML = time < 0 ? '0:00' : Math.floor(time / 60) + ':' + (time % 60 < 10 ? '0' : '') + time % 60;
 	ui.timer.setAttribute("class", (ui.game.teleop && value <= 30 && value > 27)? "blink" : "no-blink");
 });
-NetworkTables.putValue('' + addresses.fms.time, 124);
 
 //arm rotation
 NetworkTables.addKeyListener('' + addresses.arm.rotation, (key, value) => {
@@ -422,6 +447,10 @@ NetworkTables.addKeyListener('' + addresses.game.teleop, (key, value) => {
 function updateRobotStatus() {
 	ui.game.status.innerHTML = (ui.game.enabled) ? ((ui.game.autonomous) ? "Autonomous" : ((ui.game.teleop) ? "TeleOp" : "Enabled")) : "Disabled";
 }
+
+NetworkTables.addKeyListener('' + addresses.lidar, (key, value) => {
+	ui.lidarText.innerHTML = "LIDAR: " + value;
+});
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ AUTONOMOUS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //update the autonomous options at start
@@ -618,12 +647,14 @@ function updateAutoOptions() {
 	ui.autonomous.leftBox.setAttribute("class", "auto-disabled");
 	ui.autonomous.centerBox.setAttribute("class", "auto-disabled");
 	ui.autonomous.rightBox.setAttribute("class", "auto-disabled");
+	ui.autonomous.enableOppositeButton.setAttribute("class", (ui.autonomous.enableOpposite)? "button-on" : "button-off");
+
 	//get key values
 	let team = NetworkTables.getValue(addresses.fms.team); //true for red, false for blue
 	let fieldData = NetworkTables.getValue(addresses.fms.field); //String to represent the randomization of field
 	let position = ui.autonomous.autoChooser.selectedIndex - 1; //String to represent autonomous start pos
 	//check all possible permutations and update the board
-	if (!ui.autonomous.emergencyStopButton.checked) {
+	if (!ui.autonomous.emergencyStop) {
 		//left
 		if (position == 0) {
 			//hide all right & center config options
@@ -633,6 +664,7 @@ function updateAutoOptions() {
 			//hide all left & right config options
 			//display all center config options
 			ui.autonomous.centerBox.setAttribute("class", "auto-center");
+			ui.autonomous.enableOppositeButton.setAttribute("class", "auto-disabled");
 		} else if (position == 2) {
 			//hide all left & center config options
 			//display all right config options
@@ -641,9 +673,44 @@ function updateAutoOptions() {
 
 	} else {
 		//hide everything
+		ui.autonomous.enableOppositeButton.setAttribute("class", "auto-disabled");
 	}
 }
 
+//reset the cob & its auto functions (call this on reconnect)
+function resetAutoOptions() {
+	
+	//instruction reset
+	ui.autonomous.left.instructions = 0;
+	ui.autonomous.center.delay = 0;
+	ui.autonomous.right.instructions = 0;
+	
+	//auto chooser reset
+	ui.autonomous.autoChooser.selectedIndex = 0;
+	
+	//left buttons
+	ui.autonomous.left.doEasiestButton.setAttribute("class", "button-on");
+	ui.autonomous.left.doSwitchButton.setAttribute("class", "button-off");
+	ui.autonomous.left.doScaleButton.setAttribute("class", "button-off");
+	ui.autonomous.left.doBaselineButton.setAttribute("class", "button-off");
+
+	//center button
+	ui.autonomous.center.delayCounter.innerHTML = 0;
+
+	//right buttons
+	ui.autonomous.right.doEasiestButton.setAttribute("class", "button-on");
+	ui.autonomous.right.doSwitchButton.setAttribute("class", "button-off");
+	ui.autonomous.right.doScaleButton.setAttribute("class", "button-off");
+	ui.autonomous.right.doBaselineButton.setAttribute("class", "button-off");
+
+	//other buttons
+	ui.autonomous.enableOppositeButton.setAttribute("class", "button-on");
+	ui.autonomous.enableOpposite = true;
+	ui.autonomous.emergencyStopButton.setAttribute("class", "button-off");
+	ui.autonomous.emergencyStop = false;
+	
+	updateAutoOptions();
+}
 
 //Autonomous pictures
 let autoImageCenter = new Image();
