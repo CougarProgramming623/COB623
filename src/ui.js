@@ -34,11 +34,8 @@ let addresses = {
 		field : '/cob/fms/field', //pass the field game data ('RRR', 'LLL', 'RLR', 'LRL')
 		alliance : '/cob/fms/alliance' //pass if the alliance is red (true, false)
 	},
-<<<<<<< HEAD
 	lidar: '/cob/lidar',
 	update: '/cob/update',
-=======
->>>>>>> b652a37340d0ce428f6edf9313857b788522992f
 	debug : {
 		error : '/cob/debug/error' //used for debugging the COB
 	}
@@ -109,12 +106,8 @@ let ui = {
 		enableOpposite : true, //the enable crossing value
 		emergencyStopButton : document.getElementById('button-auto-checkbox-emergency-no-auto'), //the emergency stop button
 		emergencyStop : false //the emergency stop button value
-<<<<<<< HEAD
 	},
 	lidarText: document.getElementById('lidar-text')
-=======
-	}
->>>>>>> b652a37340d0ce428f6edf9313857b788522992f
 };
 
 // Define NetworkTable Address
@@ -192,20 +185,13 @@ function onRobotConnection(connected) {
 	NetworkTables.putValue('' + addresses.autonomous.instructions, 0); //do easy || delay of 0
 	NetworkTables.putValue('' + addresses.autonomous.enableOpposite, true); //enable opposite side
 	NetworkTables.putValue('' + addresses.fms.time, 0); //0:00
-<<<<<<< HEAD
 	NetworkTables.putValue('' + addresses.fms.field, "RIP"); //lol
 	NetworkTables.putValue('' + addresses.fms.alliance, true); //red
 	NetworkTables.putValue('' + addresses.arm.height, 0.6); //initial height just above pivot
-=======
-	NetworkTables.putValue('' + addresses.fms.field, "YUM"); //lol
-	NetworkTables.putValue('' + addresses.fms.alliance, true); //red
-	NetworkTables.putValue('' + addresses.arm.height, 100); //initial height up
->>>>>>> b652a37340d0ce428f6edf9313857b788522992f
 	NetworkTables.putValue('' + addresses.arm.rotation, 0); //begin folded
 	NetworkTables.putValue('' + addresses.game.autonomous, false); //not in auto
 	NetworkTables.putValue('' + addresses.game.teleop, false); //not in tele
 	NetworkTables.putValue('' + addresses.game.enabled, false); //disabled
-<<<<<<< HEAD
 	
 	//reset the buttons
 	resetAutoOptions();
@@ -259,11 +245,6 @@ function resend() {
 NetworkTables.addKeyListener('' + addresses.update, (key, value) => {
 	resend();
 });
-=======
-	NetworkTables.putValue('' + addresses.pid, true); //enabled
-}
-
->>>>>>> b652a37340d0ce428f6edf9313857b788522992f
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIELD CANVAS~~~~~~~~~~~~~~~~~~~~~~~~~
 //autonomous is not running by default
 let autonomousRunning = false;
@@ -914,7 +895,6 @@ function isOurs(side, number) {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~COLOR SCHEME~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<<<<<<< HEAD
 function getCurrentForegroundColor(){
 	if (ui.darkScheme)
 		return 'rgb(35, 255, 17)';
@@ -959,9 +939,6 @@ ui.colorButton.onclick = function() {
 		ui.colorButton.innerHTML = "Light Mode";
 	updateColor();
 }
-=======
-
->>>>>>> b652a37340d0ce428f6edf9313857b788522992f
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
